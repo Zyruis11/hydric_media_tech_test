@@ -5,6 +5,14 @@ var request = require('superagent');
 router.get('/', function(req, res, next) {
     //PLEASE NOTE: I would usually put these into either environment variables or a private config
     var auth = (new Buffer('CLIENT ID' + ':' + 'CLIENT SECRET').toString('base64')); //Parse the keys into base64
+    var message = req.query.msg;
+    message = message.replace(/[^a-zA-Z ]/g, "");
+    message = message.split('');
+    if(message.length >= 30){
+        res.send('failed!');
+        return;
+    }
+
 
     request
     .post('https://accounts.spotify.com/api/token') //Get an application token. 
@@ -17,7 +25,6 @@ router.get('/', function(req, res, next) {
             return;
         }
         var parsed = JSON.parse(result.res.text);
-        var message = req.query.msg.split('');
         var processed =[];
         var sent = false;
         message.forEach(letter => { //This would have been better fixed with the use of promises
@@ -27,7 +34,7 @@ router.get('/', function(req, res, next) {
             .query({ 
                 q: '"'+letter+'"',
                 type:'track',
-                limit:25
+                limit:50
              })
             .end((err,result)=>{
                 if(err){
